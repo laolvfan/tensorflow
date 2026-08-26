@@ -742,7 +742,8 @@ def norm(tensor,
           # can't prove constant even though the values fully are.
           positive_axis = tuple(a + static_rank if a < 0 else a for a in axis)
           axes = list(range(static_rank))
-          perm_before = [a for a in axes if a not in positive_axis] + list(positive_axis)
+          remaining_axes = [a for a in axes if a not in positive_axis]
+          perm_before = remaining_axes + list(positive_axis)
           perm_after = [perm_before.index(a) for a in axes]
         else:
           rank = array_ops.rank(tensor)

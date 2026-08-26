@@ -118,6 +118,38 @@ class NormOpTest(test_lib.TestCase):
     xla_result = def_function.function(norm_fn, jit_compile=True)(tensor)
     self.assertAllClose(eager_result, xla_result, rtol=1e-5, atol=1e-5)
 
+  @test_util.run_v2_only
+  def testMatrixNormOrd2Rank2XlaCompile(self):
+    """Covers the static-rank XLA path for a rank-2 tensor."""
+    if not test_lib.is_built_with_xla():
+      self.skipTest("Test only applicable when running with XLA support")
+
+    matrix = np.arange(1, 13, dtype=np.float32).reshape(3, 4)
+    tensor = constant_op.constant(matrix)
+
+    def norm_fn(t):
+      return linalg_ops.norm(t, ord=2, axis=[0, 1], keepdims=True)
+
+    eager_result = norm_fn(tensor)
+    xla_result = def_function.function(norm_fn, jit_compile=True)(tensor)
+    self.assertAllClose(eager_result, xla_result, rtol=1e-5, atol=1e-5)
+
+  @test_util.run_v2_only
+  def testMatrixNormOrd2Rank3XlaCompile(self):
+    """Covers a non-adjacent axis permutation for a rank-3 tensor."""
+    if not test_lib.is_built_with_xla():
+      self.skipTest("Test only applicable when running with XLA support")
+
+    matrix = np.arange(1, 25, dtype=np.float32).reshape(2, 3, 4)
+    tensor = constant_op.constant(matrix)
+
+    def norm_fn(t):
+      return linalg_ops.norm(t, ord=2, axis=[0, 2], keepdims=True)
+
+    eager_result = norm_fn(tensor)
+    xla_result = def_function.function(norm_fn, jit_compile=True)(tensor)
+    self.assertAllClose(eager_result, xla_result, rtol=1e-5, atol=1e-5)
+
 
 def _GetNormOpTest(dtype_, shape_, ord_, axis_, keep_dims_, use_static_shape_):
 
